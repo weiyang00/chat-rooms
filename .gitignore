@@ -1,0 +1,43 @@
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+.mvn
+mvnw
+mvnw.cmd
+*/target/
+*/!.mvn/wrapper/maven-wrapper.jar
+*/.mvn
+*/mvnw
+*/mvnw.cmd
+out/
+
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+*/.idea
+.idea
+*.iws
+*.iml
+*.ipr
+
+
+### NetBeans ###
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### jdbc ###
+*/application-dev.yml
+application-dev.yml
+*/application-dev.*
+application-dev.*
