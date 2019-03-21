@@ -35,7 +35,7 @@ public class ClientNio {
 
     public void init() throws IOException {
 
-        name = System.currentTimeMillis()+ "";
+        name = System.currentTimeMillis() + "";
 
         System.out.println("user name  === " + name);
 
@@ -45,7 +45,24 @@ public class ClientNio {
         sc.configureBlocking(false);
         sc.register(selector, SelectionKey.OP_READ);
         //开辟一个新线程来读取从服务器端的数据
-        new Thread(new ClientThread()).start();
+        new Thread(() -> {
+            try {
+                while (true) {
+                    int readyChannels = selector.select();
+                    if (readyChannels == 0) continue;
+                    Set selectedKeys = selector.selectedKeys();  //可以通过这个方法，知道可用通道的集合
+                    Iterator keyIterator = selectedKeys.iterator();
+                    while (keyIterator.hasNext()) {
+                        SelectionKey sk = (SelectionKey) keyIterator.next();
+                        keyIterator.remove();
+                        dealWithSelectionKey(sk);
+                    }
+                }
+            } catch (IOException io) {
+                io.printStackTrace();
+            }
+
+        }).start();
         //在主线程中 从键盘读取数据输入到服务器端
         Scanner scan = new Scanner(System.in);
         //注册
@@ -65,53 +82,32 @@ public class ClientNio {
 
     }
 
-    private class ClientThread implements Runnable {
-        public void run() {
-            try {
-                while (true) {
-                    int readyChannels = selector.select();
-                    if (readyChannels == 0) continue;
-                    Set selectedKeys = selector.selectedKeys();  //可以通过这个方法，知道可用通道的集合
-                    Iterator keyIterator = selectedKeys.iterator();
-                    while (keyIterator.hasNext()) {
-                        SelectionKey sk = (SelectionKey) keyIterator.next();
-                        keyIterator.remove();
-                        dealWithSelectionKey(sk);
-                    }
-                }
-            } catch (IOException io) {
-            }
-        }
 
-        private void dealWithSelectionKey(SelectionKey sk) throws IOException {
-            if (sk.isReadable()) {
-                //使用 NIO 读取 Channel中的数据，这个和全局变量sc是一样的，因为只注册了一个SocketChannel
-                //sc既能写也能读，这边是读
-                SocketChannel sc = (SocketChannel) sk.channel();
+    private void dealWithSelectionKey(SelectionKey sk) throws IOException {
+        if (sk.isReadable()) {
+            //使用 NIO 读取 Channel中的数据，这个和全局变量sc是一样的，因为只注册了一个SocketChannel
+            //sc既能写也能读，这边是读
+            SocketChannel sc = (SocketChannel) sk.channel();
 
-                ByteBuffer buff = ByteBuffer.allocate(1024);
-                String content = "";
-                while (sc.read(buff) > 0) {
-                    buff.flip();
-                    content += charset.decode(buff);
-                }
-                //若系统发送通知名字已经存在，则需要换个昵称
-                if (USER_EXIST.equals(content)) {
-                    name = "";
-                }
-                System.out.println(content);
-                sk.interestOps(SelectionKey.OP_READ);
+            ByteBuffer buff = ByteBuffer.allocate(1024);
+            StringBuilder content = new StringBuilder();
+            while (sc.read(buff) > 0) {
+                buff.flip();
+                content.append(charset.decode(buff));
             }
+            //若系统发送通知名字已经存在，则需要换个昵称
+            if (USER_EXIST.equals(content.toString())) {
+                name = "";
+            }
+            System.out.println(content);
+            sk.interestOps(SelectionKey.OP_READ);
         }
     }
-
-
 
 
     public static void main(String[] args) throws IOException {
         new ClientNio().init();
     }
-
 
 
 }

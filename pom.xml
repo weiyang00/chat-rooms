@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>netty-chat-room</artifactId>
+    <artifactId>chat-rooms</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <modules>
-        <module>netty-client</module>
-        <module>netty-server</module>
+        <module>java-chat-room</module>
+        <module>netty-chat-room</module>
     </modules>
 
 </project>
